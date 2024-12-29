@@ -20,6 +20,8 @@
     "@vercel/postgres": "^0.10.0",
     "@vercel/speed-insights": "^1.1.0",
     "cross-env": "^7.0.3",
+    "dexie": "^4.0.10",
+    "dexie-react-hooks": "^1.1.7",
     "graphql": "^16.8.1",
     "microsoft-cognitiveservices-speech-sdk": "^1.42.0",
     "next": "15.1.3",

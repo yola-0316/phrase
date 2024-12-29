@@ -3,32 +3,49 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-type Hitokoto = {
-  id: number;
-  hitokoto: string;
-  type: string;
-  from: string;
-  from_who: string;
-  creator: string;
-  creator_uid: number;
-  reviewer: number;
-  uuid: string;
-  commit_from: string;
-  created_at: string;
-  length: number;
+import { db, Hitokoto } from "@/db-browser";
+
+let lastCallTime = Date.now();
+
+const choicePhrase = async () => {
+  const all = await db.hitokotos.toArray();
+  const randomIndex = Math.floor(Math.random() * all.length);
+  return all[randomIndex];
+};
+
+const fetchPhrase = async () => {
+  try {
+    const now = Date.now();
+    if (lastCallTime && now - lastCallTime < 10000) {
+      return choicePhrase();
+    } else {
+      lastCallTime = now;
+    }
+
+    const response = await fetch("https://v1.hitokoto.cn/?c=b");
+    const data = await response.json();
+    data.createdAt = new Date().toISOString();
+
+    const id = await db.hitokotos.add({ ...data });
+    console.log("added", id, data.hitokoto);
+    return data;
+  } catch (error) {
+    console.error(error);
+    const data = await choicePhrase();
+    return data;
+  }
 };
 
 export default function HomeUI() {
   const [hitokoto, setHitokoto] = useState<Hitokoto>({} as Hitokoto);
 
   useEffect(() => {
-    async function fetchPhrase() {
-      const response = await fetch("https://v1.hitokoto.cn/?c=b");
-      const data = await response.json();
+    async function getPhrase() {
+      const data = await fetchPhrase();
       setHitokoto(data);
       // sayIt(data.hitokoto);
     }
-    fetchPhrase();
+    getPhrase();
   }, []);
 
   const sayIt = async (text: string) => {
@@ -52,8 +69,7 @@ export default function HomeUI() {
   };
 
   const changePhrase = async () => {
-    const response = await fetch("https://v1.hitokoto.cn/?c=b");
-    const data = await response.json();
+    const data = await fetchPhrase();
     setHitokoto(data);
   };
 
