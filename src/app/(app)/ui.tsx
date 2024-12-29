@@ -31,7 +31,7 @@ export default function HomeUI() {
   }, []);
 
   const sayIt = async (text: string) => {
-    const res = await fetch("https://localhost:4000/x", {
+    const res = await fetch("/x", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function HomeUI() {
             className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
             onClick={changePhrase}
           >
-            下一条
+            换一条
           </button>
         </div>
       </main>
