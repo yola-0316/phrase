@@ -36,6 +36,43 @@ const fetchPhrase = async () => {
   }
 };
 
+const sayIt = async (text: string) => {
+  const existingAudio = await db.audios.where({ text }).first();
+  if (existingAudio) {
+    const audioContext = new AudioContext();
+    audioContext.decodeAudioData(existingAudio.audio, (audioBuffer) => {
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.start();
+    });
+    return;
+  }
+
+  const res = await fetch("/x", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ text }),
+  });
+
+  const buffer = await res.arrayBuffer();
+
+  await db.audios.add({
+    text,
+    audio: buffer,
+  });
+
+  const audioContext = new AudioContext();
+  audioContext.decodeAudioData(buffer, (audioBuffer) => {
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    source.start();
+  });
+};
+
 export default function HomeUI() {
   const [hitokoto, setHitokoto] = useState<Hitokoto>({} as Hitokoto);
 
@@ -47,26 +84,6 @@ export default function HomeUI() {
     }
     getPhrase();
   }, []);
-
-  const sayIt = async (text: string) => {
-    const res = await fetch("/x", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text }),
-    });
-
-    const buffer = await res.arrayBuffer();
-
-    const audioContext = new AudioContext();
-    audioContext.decodeAudioData(buffer, (audioBuffer) => {
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      source.start();
-    });
-  };
 
   const changePhrase = async () => {
     const data = await fetchPhrase();
