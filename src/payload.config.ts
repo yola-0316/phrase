@@ -30,6 +30,7 @@ export default buildConfig({
     pool: {
       connectionString: process.env.POSTGRES_URL || '',
     },
+    forceUseVercelPostgres: true,
   }),
   sharp,
   plugins: [
