@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { db, Hitokoto } from "@/db-browser";
 
-let lastCallTime = Date.now();
+let lastCallTime = 0;
 
 const choicePhrase = async () => {
   const all = await db.hitokotos.toArray();
@@ -16,7 +16,7 @@ const choicePhrase = async () => {
 const fetchPhrase = async () => {
   try {
     const now = Date.now();
-    if (lastCallTime && now - lastCallTime < 10000) {
+    if (now - lastCallTime < 10000) {
       return choicePhrase();
     } else {
       lastCallTime = now;
@@ -95,7 +95,7 @@ export default function HomeUI() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <h1 className="text-4xl sm:text-6xl">一言一语</h1>
 
-        <p>{hitokoto.hitokoto}</p>
+        <p>{hitokoto?.hitokoto}</p>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <button
