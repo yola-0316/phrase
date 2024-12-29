@@ -32,7 +32,9 @@ export default buildConfig({
     pool: {
       connectionString: process.env.POSTGRES_URL || "",
     },
-    forceUseVercelPostgres: true,
+    // FIXME:
+    // TODO: make database pull pending
+    // forceUseVercelPostgres: true,
     prodMigrations: migrations,
   }),
   sharp,
