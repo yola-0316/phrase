@@ -14,7 +14,7 @@ const eslintConfig = [
   ...compat.config({
     overrides: [
       {
-        files: ["**/migrations/*.ts"],
+        files: ["src/migrations/*.ts"],
         rules: {
           "no-unused-vars": "off",
           "@typescript-eslint/no-unused-vars": "off",
