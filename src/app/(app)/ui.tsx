@@ -1,21 +1,41 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
+
+type Hitokoto = {
+  id: number;
+  hitokoto: string;
+  type: string;
+  from: string;
+  from_who: string;
+  creator: string;
+  creator_uid: number;
+  reviewer: number;
+  uuid: string;
+  commit_from: string;
+  created_at: string;
+  length: number;
+};
 
 export default function HomeUI() {
+  const [hitokoto, setHitokoto] = useState<Hitokoto>({} as Hitokoto);
+
+  useEffect(() => {
+    async function fetchPhrase() {
+      const response = await fetch("https://v1.hitokoto.cn/?c=b");
+      const data = await response.json();
+      setHitokoto(data);
+    }
+    fetchPhrase();
+  }, []);
+
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
+        <h1 className="uppercase text-4xl sm:text-6xl">Phrase</h1>
 
-        <p>Test</p>
+        <p>{hitokoto.hitokoto}</p>
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
