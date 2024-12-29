@@ -26,7 +26,7 @@ export default function HomeUI() {
       const response = await fetch("https://v1.hitokoto.cn/?c=b");
       const data = await response.json();
       setHitokoto(data);
-      sayIt(data.hitokoto);
+      // sayIt(data.hitokoto);
     }
     fetchPhrase();
   }, []);
