@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { db, Hitokoto } from "@/db-browser";
+import { AudioManager } from "@/lib/audio";
 
 let lastCallTime = 0;
 
@@ -36,45 +37,15 @@ const fetchPhrase = async () => {
   }
 };
 
-const sayIt = async (text: string) => {
-  const existingAudio = await db.audios.where({ text }).first();
-  if (existingAudio) {
-    const audioContext = new AudioContext();
-    audioContext.decodeAudioData(existingAudio.audio, (audioBuffer) => {
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      source.start();
-    });
-    return;
-  }
-
-  const res = await fetch("/x", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ text }),
-  });
-
-  const buffer = await res.arrayBuffer();
-
-  await db.audios.add({
-    text,
-    audio: buffer,
-  });
-
-  const audioContext = new AudioContext();
-  audioContext.decodeAudioData(buffer, (audioBuffer) => {
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
-    source.start();
-  });
-};
-
 export default function HomeUI() {
   const [hitokoto, setHitokoto] = useState<Hitokoto>({} as Hitokoto);
+  const [playingState, setPlayingState] = useState<{
+    isPlaying: boolean;
+    currentSrc: string | null;
+  }>({
+    isPlaying: false,
+    currentSrc: null,
+  });
 
   useEffect(() => {
     async function getPhrase() {
@@ -85,9 +56,56 @@ export default function HomeUI() {
     getPhrase();
   }, []);
 
+  useEffect(() => {
+    const audio = AudioManager.getInstance();
+
+    const cleanup = audio.onStateChange((state) => {
+      console.log("state", state);
+      setPlayingState(state);
+    });
+
+    return () => {
+      cleanup();
+    };
+  }, []);
+
   const changePhrase = async () => {
     const data = await fetchPhrase();
     setHitokoto(data);
+  };
+
+  const handlePlay = (src: string | AudioBuffer | ArrayBuffer) => {
+    const audio = AudioManager.getInstance();
+    if (playingState.currentSrc === src && playingState.isPlaying) {
+      audio.pause();
+    } else {
+      audio.play(src);
+    }
+  };
+
+  const sayIt = async (text: string) => {
+    const existingAudio = await db.audios.where({ text }).first();
+    if (existingAudio) {
+      handlePlay(existingAudio.audio);
+      return;
+    }
+
+    const res = await fetch("/x", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text }),
+    });
+
+    const buffer = await res.arrayBuffer();
+
+    await db.audios.add({
+      text,
+      audio: buffer,
+    });
+
+    handlePlay(buffer);
   };
 
   return (
